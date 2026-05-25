@@ -41,8 +41,6 @@ services:
   obs:
     image: ghcr.io/abeggled/openbridgeserver:latest
     restart: unless-stopped
-    # Share Mosquitto's PID namespace so OBS can send SIGHUP to reload passwd.
-    pid: "service:mosquitto"
     depends_on:
       mosquitto:
         condition: service_healthy
@@ -61,7 +59,7 @@ services:
       OBS_MOSQUITTO__PASSWD_FILE: /mosquitto/passwd/passwd
       OBS_MOSQUITTO__SERVICE_USERNAME: ${OBS_MQTT_USERNAME:-obs}
       OBS_MOSQUITTO__SERVICE_PASSWORD: ${OBS_MQTT_PASSWORD:-changeme}
-      OBS_MOSQUITTO__RELOAD_PID: "1"
+      # Dev env: omit RELOAD_PID / RELOAD_COMMAND so OBS uses its null defaults (no runtime reload needed)
       OBS_SECURITY__JWT_SECRET: ${OBS_JWT_SECRET:-dev-secret-change-in-production}
       OBS_SERVER__LOG_LEVEL: ${OBS_LOG_LEVEL:-INFO}
       # Tells OBS to watch this directory for plugin files
