@@ -19,10 +19,17 @@ cd obs-plugin-my-block
 python init.py
 
 # 3. Start the stack  (.env was already created by init.py)
-docker compose up
+docker compose up -d
+
+# 4. One-time: OBS ships with no default account, so it refuses to start
+#    until an owner exists — create one (pick your own password)
+docker compose exec obs sh -c 'echo yourpassword | obs-admin auth first-owner admin --password-stdin'
+docker compose restart obs
 ```
 
-Open **http://localhost:8080** (login: `admin` / `admin`) → Logic editor → your block is listed in the node palette.
+Step 4 only has to run once — the owner account persists in the database across restarts and image upgrades.
+
+Open **http://localhost:8080** (login: `admin` / the password from step 4) → Logic editor → your block is listed in the node palette.
 
 ---
 
