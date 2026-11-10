@@ -29,12 +29,22 @@ T_TYPE  = "logic_template"       # type_name + entry-point key
 T_LABEL = "Logic Template"       # display label in the GUI palette
 T_PKG   = "obs-plugin-template"  # pip package name
 
+PLUGINS_DIR = ROOT / "plugins"
+
 TARGET_FILES = [
-    ROOT / "plugin.py",
     ROOT / "pyproject.toml",
     ROOT / "tests" / "test_plugin.py",
     ROOT / "README.md",
 ]
+
+
+
+def _plugin_file() -> Path:
+    """The block's module: plugins/obs_plugin_<type_name>.py (one file per repo)."""
+    files = sorted(PLUGINS_DIR.glob("obs_plugin_*.py"))
+    if not files:
+        _fail("No plugins/obs_plugin_*.py found", "restore it from the template repository")
+    return files[0]
 
 
 # ── Formatting helpers ────────────────────────────────────────────────────────
@@ -133,7 +143,8 @@ def step_personalise() -> dict:
     _section("Step 2 — Personalise")
 
     # Already personalised?
-    sample = (ROOT / "plugin.py").read_text("utf-8")
+    plugin_file = _plugin_file()
+    sample = plugin_file.read_text("utf-8")
     if T_TYPE not in sample:
         _ok("Already personalised — skipping rename step")
         # Still need to return something for the summary; try to read current type_name.
@@ -175,8 +186,15 @@ def step_personalise() -> dict:
     if description:
         subs.append(("Replace this description with your block's purpose.", description))
 
-    changed = [p.name for p in TARGET_FILES if p.exists() and _patch(p, subs)]
+    changed = [p.name for p in [plugin_file, *TARGET_FILES] if p.exists() and _patch(p, subs)]
     _ok(f"Updated: {', '.join(changed)}")
+
+    # The file is named after the block, so several plugins can share one
+    # OBS plugins directory without clashing.
+    renamed = plugin_file.with_name(f"obs_plugin_{type_name}.py")
+    if renamed != plugin_file:
+        plugin_file.rename(renamed)
+        _ok(f"Renamed: plugins/{plugin_file.name} → plugins/{renamed.name}")
 
     return {"type_name": type_name, "package_name": package_name}
 
@@ -231,17 +249,17 @@ def step_summary(info: dict) -> None:
     print("═" * 60)
     print()
     print("  Implement your block:")
-    print("    Edit plugin.py")
+    print(f"    Edit plugins/obs_plugin_{type_name}.py")
     print("    Edit tests/test_plugin.py  (update for your ports and logic)")
     print()
     print("  Start the dev stack:")
-    print("    docker compose up")
+    print("    docker compose up -d")
     print()
     print("  Open the Admin UI:")
-    print("    http://localhost:8080   (admin / admin)")
+    print("    http://localhost:8080   (first visit: set the admin password)")
     print(f"    Logic editor → your '{type_name}' block is in the palette")
     print()
-    print("  Hot-reload — edit plugin.py and save, then watch:")
+    print("  Hot-reload — edit the plugin file and save, then watch:")
     print("    docker compose logs -f obs")
     print()
     print("  Run unit tests (no Docker needed):")

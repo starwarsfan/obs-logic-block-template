@@ -4,8 +4,8 @@
 #   cp .env.example .env
 #   docker compose up
 #
-# Edit plugin.py and save — OBS reloads it automatically (no restart needed).
-# Admin UI:  http://localhost:8080   (admin / admin)
+# Edit the file in plugins/ and save — OBS reloads it automatically (no restart needed).
+# Admin UI:  http://localhost:8080   (first visit: set the admin password)
 
 services:
 
@@ -47,8 +47,10 @@ services:
     volumes:
       - obs_data:/data
       - mosquitto_passwd:/mosquitto/passwd
-      # ↓ Your plugin file — edit and save, OBS reloads automatically
-      - ./plugin.py:/plugins/plugin.py:ro
+      # ↓ Your plugins directory — edit and save, OBS reloads automatically.
+      #   Mount the directory, not a single file: a single-file mount misses
+      #   changes, and editors that save via rename leave it on the old file.
+      - ./plugins:/plugins:ro
     ports:
       - "${OBS_HTTP_HOST_PORT:-8080}:8080"
     environment:
@@ -64,6 +66,9 @@ services:
       OBS_SERVER__LOG_LEVEL: ${OBS_LOG_LEVEL:-INFO}
       # Tells OBS to watch this directory for plugin files
       OBS_PLUGINS_DIR: /plugins
+      # File events do not cross into the Docker Desktop VM (macOS/Windows);
+      # polling makes hot-reload work there too.
+      WATCHFILES_FORCE_POLLING: "true"
 
 volumes:
   obs_data:

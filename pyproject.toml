@@ -15,11 +15,16 @@ dependencies = []
 # Entry point that tells OBS to import this module at startup.
 # The key (logic_template) is renamed by init.py to match your type_name.
 [project.entry-points."obs.logic_blocks"]
-logic_template = "plugin"
+logic_template = "obs_plugin_logic_template"
 
-# Includes plugin.py (single-module package) in the wheel.
+# Ships plugins/obs_plugin_logic_template.py as the top-level module obs_plugin_logic_template
+# (init.py renames both along with your type_name). A unique module name lets several plugins be
+# pip-installed side by side; a plain "plugin" module would overwrite another's.
 [tool.hatch.build.targets.wheel]
-include = ["plugin.py"]
+bypass-selection = true
+
+[tool.hatch.build.targets.wheel.force-include]
+"plugins/obs_plugin_logic_template.py" = "obs_plugin_logic_template.py"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

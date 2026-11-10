@@ -9,8 +9,8 @@ from __future__ import annotations
 import importlib
 import sys
 
-sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent.parent))
-plugin_mod = importlib.import_module("plugin")
+sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent.parent / "plugins"))
+plugin_mod = importlib.import_module("obs_plugin_logic_template")
 LogicTemplate = plugin_mod.LogicTemplate
 
 

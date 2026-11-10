@@ -34,7 +34,7 @@ class LogicNodePlugin:
     type_name: str
 
 
-# Inject stubs before plugin.py is imported so the `from obs.logic.plugin_api import …`
+# Inject stubs before the plugin module is imported so the `from obs.logic.plugin_api import …`
 # line resolves without a real OBS installation.
 _api_stub = type(sys)("obs.logic.plugin_api")
 _api_stub.LogicNodePlugin = LogicNodePlugin
